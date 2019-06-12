@@ -1,40 +1,45 @@
+require 'pry'
 require 'open-uri'
 file = open('http://www.gutenberg.org/files/11/11-0.txt')
 text = file.read
 
-text.gsub!(/-/, ' ')
+class Mystery
+  MIN_NUMBER_OF_DOTS = 3
 
-words = text.split
+  attr_reader :text
 
-cleaned_words = []
-
-words.each do |word|
-  word.gsub!(/[,\?\.‘’“”\:;!\(\)]/, '')
-  cleaned_words << word.downcase
-end
-
-words = cleaned_words
-words.sort!
-
-word_hash = {}
-
-words.each do |word|
-  if word_hash[word].nil?
-    word_hash[word] = 0
+  def initialize(text)
+    @text = text.gsub(/-/, ' ')
   end
-  word_hash[word] += 1
-end
 
-word_hash = word_hash.sort_by { |word, count| count }.to_h
+  def cleaned_words
+    words = @text.split
+    cleaned_words = []
+    words.each do |word|
+      word.gsub!(/[,\?\.‘’“”\:;!\(\)]/, '')
+      cleaned_words << word.downcase
+    end
+    cleaned_words
+  end
 
-MIN_NUMBER_OF_DOTS = 3
+  def counts
+    word_hash = {}
+    cleaned_words.each do |word|
+      if word_hash[word].nil?
+        word_hash[word] = 0
+      end
+      word_hash[word] += 1
+    end
+    word_hash
+  end
 
-def print(words, word_counts)
-  longest_word = words.max_by(&:length)
-  longest_length = longest_word.length + word_counts[longest_word].to_s.length + MIN_NUMBER_OF_DOTS
-
-  words.map do |word|
-    count = word_counts[word]
-    "#{word.ljust(longest_length - count.to_s.length + 1, '.')}#{count}"
+  def print
+    longest_word = counts.keys.max_by(&:length)
+    longest_length = longest_word.length + counts[longest_word].to_s.length + MIN_NUMBER_OF_DOTS
+  
+    counts.map do |word, count|
+      puts [word, count]
+      "#{word.ljust(longest_length - count.to_s.length + 1, '.')}#{count}"
+    end
   end
 end
